@@ -1,0 +1,51 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+model Participant {
+  participant_id String         @id @default(uuid())
+  event_id       String
+  name           String
+  is_organizer   Boolean        @default(false)
+  Event          Event          @relation(fields: [event_id], references: [event_id])
+  TerminStatus   TerminStatus[]
+}
+
+model Event {
+  event_id       String         @id @default(uuid())
+  name           String
+  start          DateTime       @db.Date
+  end            DateTime       @db.Date
+  voting_end     DateTime
+  description    String?
+  status         EventStatus     @default(ACTIVE)
+  Participants   Participant[]
+  TerminStatus   TerminStatus[]
+}
+
+enum EventStatus {
+  ACTIVE
+  COMPLETED
+}
+
+model TerminStatus {
+  termin_status_id String       @id @default(uuid())
+  day              DateTime     @db.Date
+  event_id         String
+  participant_id   String
+  status           Status
+  Event            Event        @relation(fields: [event_id], references: [event_id])
+  Participant      Participant  @relation(fields: [participant_id], references: [participant_id])
+  @@unique([day, event_id, participant_id])
+}
+
+enum Status {
+AVAILABLE
+NOT_AVAILABLE
+}
